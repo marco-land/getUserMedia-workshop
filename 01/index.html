@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Webcam Access</title>
+    <style lang="css">
+      body {
+        font-family: sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100svh;
+        background-color: #f0f0f0;
+        text-align: center;
+      }
+
+      #intro {
+        padding: 1rem;
+        background-color: tomato;
+        border-radius: 5px;
+        border: 1px solid;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      #video {
+        display: none;
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        /* Flip the webcam */
+        transform: scaleX(-1);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Intro Text -->
+    <div id="intro">
+      <p>To use this website, please allow camera access.</p>
+      <button onclick="startWebcam()">Access Camera</button>
+    </div>
+    <!-- Video Stream -->
+    <video
+      id="video"
+      autoplay
+      playsinline
+      muted
+      width="1280"
+      height="720"
+    ></video>
+
+    <script>
+      /**
+       * DOM-Elemente / Vars
+       */
+      const video = document.getElementById("video");
+      const intro = document.getElementById("intro");
+
+      /**
+       * Starting the webcam
+       */
+      async function startWebcam() {
+        try {
+          // https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              width: { ideal: 1280, max: 1920 },
+              height: { ideal: 720, max: 1080 },
+            },
+          });
+          intro.style.display = "none";
+          video.srcObject = stream;
+          video.style.display = "block";
+        } catch (error) {
+          /**
+           * Error-Handling; simple for now, better would be to show a message to the user in the UI
+           */
+          console.error("Error:", error);
+        }
+      }
+    </script>
+  </body>
+</html>

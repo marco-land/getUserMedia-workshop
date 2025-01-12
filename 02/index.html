@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Camera Effects</title>
+    <style lang="css">
+      body {
+        font-family: sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100svh;
+        background-color: #f0f0f0;
+        text-align: center;
+      }
+
+      #intro {
+        padding: 1rem;
+        background-color: tomato;
+        border-radius: 5px;
+        border: 1px solid;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      #video {
+        display: none;
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        /* Flip the webcam */
+        transform: scaleX(-1);
+        transition: all 0.5s ease-in-out;
+      }
+
+      #controls {
+        display: none;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 1rem;
+        justify-content: center;
+        gap: 1rem;
+        filter: none;
+      }
+
+      /* Filter classes */
+      .normal {
+        filter: none;
+      }
+      .sepia {
+        filter: sepia(1) grayscale(0) blur(0) invert(0);
+      }
+      .grayscale {
+        filter: sepia(0) grayscale(1) blur(0) invert(0);
+      }
+      .blur {
+        filter: sepia(0) grayscale(0) blur(5px) invert(0);
+      }
+      .invert {
+        filter: sepia(0) grayscale(0) blur(0) invert(1);
+      }
+      #video.mix {
+        filter: sepia(0) grayscale(1) blur(15px) invert(0.1);
+        transform: scaleX(0.2) scaleY(0.1) rotate(15deg);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Intro Text -->
+    <div id="intro">
+      <p>To use this website, please allow camera access.</p>
+      <button onclick="startWebcam()">Access Camera</button>
+    </div>
+    <!-- Video Stream -->
+    <video
+      id="video"
+      autoplay
+      playsinline
+      muted
+      width="1280"
+      height="720"
+    ></video>
+    <div id="controls">
+      <button onclick="applyFilter('normal')">Normal</button>
+      <button onclick="applyFilter('sepia')">Sepia</button>
+      <button onclick="applyFilter('grayscale')">Grayscale</button>
+      <button onclick="applyFilter('blur')">Blur</button>
+      <button onclick="applyFilter('mix')">Mix</button>
+    </div>
+
+    <script>
+      /**
+       * DOM-Elemente / Vars
+       */
+      const video = document.getElementById("video");
+      const intro = document.getElementById("intro");
+      const controls = document.getElementById("controls");
+
+      /**
+       * Starting the webcam
+       */
+      async function startWebcam() {
+        try {
+          // https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              width: { ideal: 1280, max: 1920 },
+              height: { ideal: 720, max: 1080 },
+            },
+          });
+          intro.style.display = "none";
+          video.srcObject = stream;
+          video.style.display = "block";
+          controls.style.display = "flex";
+        } catch (error) {
+          /**
+           * Error-Handling; simple for now, better would be to show a message to the user in the UI
+           */
+          console.error("Error:", error);
+        }
+      }
+
+      /**
+       * Apply a filter to the video stream
+       */
+      function applyFilter(filter) {
+        video.classList = filter;
+      }
+    </script>
+  </body>
+</html>
