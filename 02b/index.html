@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Camera Effects</title>
+    <style lang="css">
+      body {
+        font-family: sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100svh;
+        background-color: #f0f0f0;
+        text-align: center;
+      }
+
+      #intro {
+        padding: 1rem;
+        background-color: tomato;
+        border-radius: 5px;
+        border: 1px solid;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      #video {
+        display: none;
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        /* Flip the webcam */
+        transition: all 0.5s ease-in-out;
+      }
+      #video2 {
+        display: none;
+        position: fixed;
+        top: 10px;
+        left: 100px;
+        right: 20px;
+        bottom: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        /* Flip the webcam */
+        transform: scaleX(-0.97) rotate(5deg);
+        z-index: 2;
+        transition: all 0.5s ease-in-out;
+        mix-blend-mode: difference;
+      }
+
+      #controls {
+        display: none;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 1rem;
+        justify-content: center;
+        gap: 1rem;
+        filter: none;
+        z-index: 99;
+      }
+
+      /* Filter classes */
+      .normal {
+        filter: none;
+      }
+      .sepia {
+        animation: filter01 1s infinite alternate;
+      }
+      .grayscale {
+        animation: filter02 1s infinite alternate;
+      }
+      .grayscale-b {
+        animation: filter02b 5000ms infinite alternate;
+      }
+      .blur {
+        filter: sepia(0) grayscale(0) blur(0) invert(0);
+      }
+      #video2.blur-b {
+        filter: sepia(0) grayscale(0) blur(0) invert(0);
+        transform: rotate(0) translateX(100px);
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+      }
+      .invert {
+        filter: sepia(0) grayscale(0) blur(0) invert(1);
+      }
+      #video.mix {
+        filter: sepia(0) grayscale(1) blur(15px) invert(0.1);
+        transform: scaleX(0.7) scaleY(1) rotate(0);
+      }
+
+      @keyframes filter01 {
+        0% {
+          transform: rotate(0deg) scaleX(1);
+        }
+        100% {
+          transform: rotate(50deg) scaleX(2);
+        }
+      }
+
+      @keyframes filter02 {
+        0% {
+          filter: blur(0);
+        }
+        100% {
+          filter: blur(40px);
+        }
+      }
+
+      @keyframes filter02b {
+        0% {
+          filter: blur(0);
+        }
+        100% {
+          filter: blur(100px);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Intro Text -->
+    <div id="intro">
+      <p>To use this website, please allow camera access.</p>
+      <button onclick="startWebcam()">Access Camera</button>
+    </div>
+    <!-- Video Stream -->
+    <video
+      id="video"
+      autoplay
+      playsinline
+      muted
+      width="1280"
+      height="720"
+    ></video>
+    <video
+      id="video2"
+      autoplay
+      playsinline
+      muted
+      width="1280"
+      height="720"
+    ></video>
+    <div id="controls">
+      <button onclick="applyFilter('normal')">Normal</button>
+      <button onclick="applyFilter('sepia')">01</button>
+      <button onclick="applyFilter('grayscale')">02</button>
+      <button onclick="applyFilter('blur')">03</button>
+      <button onclick="applyFilter('mix')">04</button>
+    </div>
+
+    <script>
+      /**
+       * DOM-Elemente / Vars
+       */
+      const video = document.getElementById("video");
+      const video2 = document.getElementById("video2");
+      const intro = document.getElementById("intro");
+      const controls = document.getElementById("controls");
+
+      /**
+       * Starting the webcam
+       */
+      async function startWebcam() {
+        try {
+          // https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              width: { ideal: 1280, max: 1920 },
+              height: { ideal: 720, max: 1080 },
+            },
+          });
+          intro.style.display = "none";
+          video.srcObject = stream;
+          video2.srcObject = stream;
+          video.style.display = "block";
+          video2.style.display = "block";
+          controls.style.display = "flex";
+        } catch (error) {
+          /**
+           * Error-Handling; simple for now, better would be to show a message to the user in the UI
+           */
+          console.error("Error:", error);
+        }
+      }
+
+      /**
+       * Apply a filter to the video stream
+       */
+      function applyFilter(filter) {
+        video.classList = filter;
+        video2.classList = `${filter}-b`;
+      }
+    </script>
+  </body>
+</html>
