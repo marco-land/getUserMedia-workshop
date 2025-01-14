@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Webcam Access with Eye Tracking</title>
+    <style lang="css">
+      body {
+        font-family: sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100svh;
+        background-color: #f0f0f0;
+        text-align: center;
+      }
+
+      #intro {
+        padding: 1rem;
+        background-color: tomato;
+        border-radius: 5px;
+        border: 1px solid;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      #video {
+        display: none;
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        /* Flip the webcam */
+        transform: scaleX(-1);
+      }
+    </style>
+    <script src="https://webgazer.cs.brown.edu/webgazer.js"></script>
+  </head>
+  <body>
+    <!-- Intro Text -->
+    <div id="intro">
+      <p>To use this website, please allow camera access.</p>
+      <button onclick="startWebcam()">Access Camera</button>
+    </div>
+    <!-- Video Stream -->
+    <video
+      id="video"
+      autoplay
+      playsinline
+      muted
+      width="1280"
+      height="720"
+    ></video>
+
+    <script>
+      const video = document.getElementById("video");
+      const intro = document.getElementById("intro");
+
+      async function startWebcam() {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              width: { ideal: 1280, max: 1920 },
+              height: { ideal: 720, max: 1080 },
+            },
+          });
+          intro.style.display = "none";
+          video.srcObject = stream;
+          video.style.display = "block";
+
+          // Start WebGazer after webcam access is granted
+          webgazer
+            .setGazeListener((data, elapsedTime) => {
+              if (data == null) {
+                return;
+              }
+              console.log(`X: ${data.x}, Y: ${data.y}, Time: ${elapsedTime}`);
+            })
+            .begin();
+          webgazer.showVideo(false); // Hide the WebGazer's default video
+          webgazer.showPredictionPoints(true); // Show the tracking dots for debugging
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      }
+    </script>
+  </body>
+</html>

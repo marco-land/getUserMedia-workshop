@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Object Detection (TensorFlow)</title>
+    <style lang="css">
+      body {
+        font-family: sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100svh;
+        background-color: #f0f0f0;
+        text-align: center;
+      }
+
+      #intro {
+        padding: 1rem;
+        background-color: tomato;
+        border-radius: 5px;
+        border: 1px solid;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      #video,
+      #canvas {
+        display: none;
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      #video {
+        z-index: -1;
+      }
+      #canvas {
+        z-index: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Load TensorFlow.js and COCO-SSD with defer -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+    <!-- Intro Text -->
+    <div id="intro">
+      <p>To use this website, please allow camera access.</p>
+      <button onclick="startWebcam()">Access Camera</button>
+    </div>
+    <!-- Video Stream -->
+    <video
+      id="video"
+      autoplay
+      playsinline
+      muted
+      width="1280"
+      height="720"
+    ></video>
+    <canvas id="canvas" width="1280" height="720"></canvas>
+
+    <script>
+      /**
+       * DOM-Elemente / Vars
+       */
+      const video = document.getElementById("video");
+      const canvas = document.getElementById("canvas");
+      const intro = document.getElementById("intro");
+      const ctx = canvas.getContext("2d");
+      let model;
+
+      /**
+       * Load the COCO-SSD model (pre-trained model for object detection) / Starting the webcam
+       */
+      async function startWebcam() {
+        try {
+          model = await cocoSsd.load();
+
+          // https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              width: { ideal: 1280, max: 1920 },
+              height: { ideal: 720, max: 1080 },
+            },
+          });
+          intro.style.display = "none";
+          video.srcObject = stream;
+          // Wait for the video to be loaded and then start detecting objects
+          video.onloadeddata = () => detectObjects();
+          video.style.display = "block";
+          canvas.style.display = "block";
+        } catch (error) {
+          /**
+           * Error-Handling; simple for now, better would be to show a message to the user in the UI
+           */
+          console.error("Error:", error);
+        }
+      }
+
+      /**
+       * Detect objects in the video stream
+       */
+      async function detectObjects() {
+        if (!model || !video) return;
+
+        // Detect objects in the video stream
+        const predictions = await model.detect(video);
+        // Clear the canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw bounding boxes and labels for each detected object
+        predictions.forEach((prediction) => {
+          const emoji = getEmoji(prediction.class);
+
+          // Draw bounding box
+          ctx.beginPath();
+          ctx.rect(
+            prediction.bbox[0],
+            prediction.bbox[1],
+            prediction.bbox[2],
+            prediction.bbox[3]
+          );
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = "yellow";
+          ctx.stroke();
+
+          // Set font and write text
+          ctx.font = "30px Arial"; // Vergrößert die Schriftgröße auf 30px
+          ctx.fillStyle = "yellow";
+          ctx.fillText(
+            emoji,
+            prediction.bbox[0],
+            prediction.bbox[1] > 10 ? prediction.bbox[1] - 5 : 10
+          );
+        });
+
+        // Continue detecting objects in the next animation frame
+        requestAnimationFrame(detectObjects);
+      }
+
+      function getEmoji(className) {
+        const emojiMap = {
+          person: "👤",
+          bicycle: "🚲",
+          car: "🚗",
+          motorcycle: "🏍️",
+          airplane: "✈️",
+          bus: "🚌",
+          train: "🚆",
+          truck: "🚚",
+          boat: "⛵",
+          traffic_light: "🚦",
+          fire_hydrant: "🔥",
+          stop_sign: "🛑",
+          parking_meter: "🅿️",
+          bench: "🪑",
+          bird: "🐦",
+          cat: "🐱",
+          dog: "🐶",
+          horse: "🐴",
+          sheep: "🐑",
+          cow: "🐄",
+          elephant: "🐘",
+          bear: "🐻",
+          zebra: "🦓",
+          giraffe: "🦒",
+          backpack: "🎒",
+          umbrella: "☂️",
+          handbag: "👜",
+          tie: "👔",
+          suitcase: "💼",
+          frisbee: "🥏",
+          skis: "🎿",
+          snowboard: "🏂",
+          sports_ball: "⚽",
+          kite: "🪁",
+          baseball_bat: "🏏",
+          baseball_glove: "🥎",
+          skateboard: "🛹",
+          surfboard: "🏄",
+          tennis_racket: "🎾",
+          bottle: "🍾",
+          wine_glass: "🍷",
+          cup: "☕",
+          fork: "🍴",
+          knife: "🔪",
+          spoon: "🥄",
+          bowl: "🥣",
+          banana: "🍌",
+          apple: "🍎",
+          sandwich: "🥪",
+          orange: "🍊",
+          broccoli: "🥦",
+          carrot: "🥕",
+          hot_dog: "🌭",
+          pizza: "🍕",
+          donut: "🍩",
+          cake: "🍰",
+          chair: "🪑",
+          couch: "🛋️",
+          potted_plant: "🪴",
+          bed: "🛏️",
+          dining_table: "🍽️",
+          toilet: "🚽",
+          tv: "📺",
+          laptop: "💻",
+          mouse: "🖱️",
+          remote: "📱",
+          keyboard: "⌨️",
+          cell_phone: "📱",
+          microwave: "📡",
+          oven: "🍳",
+          toaster: "🍞",
+          sink: "🚰",
+          refrigerator: "🧊",
+          book: "📖",
+          clock: "🕒",
+          vase: "🌸",
+          scissors: "✂️",
+          teddy_bear: "🧸",
+          hair_dryer: "💈",
+          toothbrush: "🪥",
+        };
+
+        return emojiMap[className] || "❓"; // Fallback für nicht erkannte Klassen
+      }
+    </script>
+  </body>
+</html>
